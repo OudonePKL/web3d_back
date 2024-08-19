@@ -72,8 +72,8 @@ urlpatterns = [
     path('', include(router.urls)),
     path('bank-accounts/update/<int:store_id>', views.BankAccountUpdateAPIView.as_view(), name='bank-account-update'),
     # Web info
-    path("web-info", views.WebInfoListCreateAPIView.as_view(), name="web-info-list-create"),
-    path("web-info/<int:pk>", views.WebInfoRetrieveUpdateAPIView.as_view(), name="edit-web-information"),
+    path("web-info", views.WebInfoList.as_view(), name="web-info-list-create"),
+    path("web-info/create_update", views.WebInfoCreateOrUpdate.as_view(), name="edit-web-information"),
     # Notice
     path("notice", views.NoticeList.as_view(), name="list-notice"),
     path("notice/create", views.NoticeCreate.as_view(), name="list-notice"),

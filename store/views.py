@@ -39,6 +39,7 @@ from .models import (
     BankAccount,
     Review,
     WebInfo,
+    WebInfoImage,
     NoticeModel,
 )
 from .serializers import (
@@ -1312,13 +1313,35 @@ class BankAccountUpdateAPIView(generics.UpdateAPIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-# Website infomation
-class WebInfoListCreateAPIView(generics.ListCreateAPIView):
+class WebInfoList(generics.ListAPIView):
     queryset = WebInfo.objects.all()
     serializer_class = WebInfoSerializer
+    
+class WebInfoCreateOrUpdate(APIView):
+    def patch(self, request, *args, **kwargs):
+        try:
+            webinfo = WebInfo.objects.first()
+            if webinfo:
+                serializer = WebInfoSerializer(webinfo, data=request.data, partial=True)
+            else:
+                serializer = WebInfoSerializer(data=request.data, partial=True)
 
+            if serializer.is_valid():
+                instance = serializer.save()
 
-class WebInfoRetrieveUpdateAPIView(generics.RetrieveUpdateAPIView):
-    queryset = WebInfo.objects.all()
-    serializer_class = WebInfoSerializer
-    lookup_field = "pk"  # Use 'pk' as the lookup field for retrieving and updating the WebInfo object
+                # Handle the images separately if required
+                images = self.request.FILES.getlist('images')
+                if images:
+                    # Delete old images if needed
+                    WebInfoImage.objects.filter(webinfo=instance).delete()
+
+                    # Create new image entries
+                    for image in images:
+                        WebInfoImage.objects.create(webinfo=instance, image=image)
+
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+ 
+ 

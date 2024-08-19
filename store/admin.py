@@ -17,7 +17,8 @@ from .models import (
     SizeModel,
     ColorModel,
     WebInfo,
-    NoticeModel
+    NoticeModel,
+    WebInfoImage
 )
 
 
@@ -116,4 +117,5 @@ admin.site.register(Review)
 admin.site.register(SizeModel)
 admin.site.register(ColorModel)
 admin.site.register(WebInfo)
+admin.site.register(WebInfoImage)
 admin.site.register(NoticeModel)

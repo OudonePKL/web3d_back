@@ -19,6 +19,7 @@ from store.models import (
     Review,
     WebInfo,
     NoticeModel,
+    WebInfoImage
 )
 from users.models import UserModel
 
@@ -744,42 +745,6 @@ class CreateProductSerializer(serializers.ModelSerializer):
         return representation
 
 
-# class UpdateProductSerializer(serializers.ModelSerializer):
-#     sizes = serializers.ListField(child=serializers.CharField(max_length=50), required=False)
-#     colors = serializers.ListField(child=serializers.CharField(max_length=50), required=False)
-#     images = serializers.ListField(child=serializers.ImageField(), required=False)
-
-#     class Meta:
-#         model = GoodsModel
-#         fields = ['name', 'description', 'price', 'category', 'sizes', 'colors', 'images']
-
-#     def update(self, instance, validated_data):
-#         sizes_data = validated_data.pop('sizes', None)
-#         colors_data = validated_data.pop('colors', None)
-#         images_data = validated_data.pop('images', None)
-
-#         for attr, value in validated_data.items():
-#             setattr(instance, attr, value)
-
-#         instance.save()
-
-#         if sizes_data is not None:
-#             instance.size.all().delete()  # Clear existing sizes
-#             for size_name in sizes_data:
-#                 SizeModel.objects.create(product=instance, name=size_name)
-
-#         if colors_data is not None:
-#             instance.color.all().delete()  # Clear existing colors
-#             for color_name in colors_data:
-#                 ColorModel.objects.create(product=instance, name=color_name)
-
-#         if images_data is not None:
-#             instance.images.all().delete()  # Clear existing images
-#             for image_file in images_data:
-#                 ProductImage.objects.create(product=instance, image=image_file)
-
-#         return instance
-
 
 class UpdateProductSerializer(serializers.ModelSerializer):
     sizes = serializers.ListField(
@@ -861,7 +826,24 @@ class BankAccountByStoreSerializer(serializers.Serializer):
 #         fields = ['id', 'name', 'account_name', 'account_number', 'image']
 
 
+class WebInfoImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = WebInfoImage
+        fields = "__all__"
+        extra_kwargs = {
+            "goods": {"required": False},
+        }
+        
+
 class WebInfoSerializer(serializers.ModelSerializer):
+    image_set = serializers.SerializerMethodField()
+
+    def get_image_set(self, obj):
+        images = WebInfoImage.objects.filter(webinfo_id=obj.id)
+        serializer = WebInfoImageSerializer(images, many=True)
+        image_set = [i["image"] for i in serializer.data]
+        return image_set
+
     class Meta:
         model = WebInfo
         fields = [
@@ -873,7 +855,7 @@ class WebInfoSerializer(serializers.ModelSerializer):
             "address",
             "description",
             "logo",
-            "background",
+            "image_set"
         ]
 
 
