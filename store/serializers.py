@@ -838,11 +838,15 @@ class WebInfoImageSerializer(serializers.ModelSerializer):
 class WebInfoSerializer(serializers.ModelSerializer):
     image_set = serializers.SerializerMethodField()
 
+    # def get_image_set(self, obj):
+    #     images = WebInfoImage.objects.filter(webinfo_id=obj.id)
+    #     serializer = WebInfoImageSerializer(images, many=True)
+    #     image_set = [i["image"] for i in serializer.data]
+    #     return image_set
+    
     def get_image_set(self, obj):
-        images = WebInfoImage.objects.filter(webinfo_id=obj.id)
-        serializer = WebInfoImageSerializer(images, many=True)
-        image_set = [i["image"] for i in serializer.data]
-        return image_set
+        images = WebInfoImage.objects.filter(webinfo=obj)
+        return [{"id": image.id, "name": image.name, "image": image.image.url} for image in images]
 
     class Meta:
         model = WebInfo

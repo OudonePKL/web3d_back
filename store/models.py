@@ -2,6 +2,37 @@ from django.db import models
 from users.models import UserModel
 
 
+class WebInfo(models.Model):
+    class Meta:
+        db_table = "WebInfo"
+        verbose_name_plural = "Website Informations"
+        
+    name = models.CharField(max_length=100)
+    tel1 = models.CharField(max_length=20)
+    tel2 = models.CharField(max_length=20)
+    email = models.CharField(max_length=100)
+    address = models.CharField(max_length=100)
+    description = models.TextField()
+    logo = models.FileField(
+        null=True, blank=True, verbose_name="logo image", upload_to="media/"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.name
+
+
+class WebInfoImage(models.Model):
+    webinfo = models.ForeignKey(
+        WebInfo, on_delete=models.CASCADE, related_name="webinfo"
+    )
+    name = models.CharField(max_length=100, null=True, blank=True)
+    image = models.ImageField(upload_to="media/")
+
+    def __str__(self):
+        return f"Image for {self.webinfo.name} name is {self.name}"
+
 class CategoryModel(models.Model):
     class Meta:
         db_table = "category"
@@ -53,6 +84,9 @@ class GoodsModel(models.Model):
 
     store = models.ForeignKey(
         StoreModel, on_delete=models.CASCADE, verbose_name="store"
+    )
+    banner = models.ForeignKey(
+        WebInfoImage, on_delete=models.CASCADE, verbose_name="banner", null=True, blank=True
     )
     category = models.ForeignKey(
         CategoryModel,
@@ -261,35 +295,7 @@ class BankAccount(models.Model):
         return f"BankAccount {self.pk} - Store: {self.store.name}"
 
 
-class WebInfo(models.Model):
-    class Meta:
-        db_table = "WebInfo"
-        verbose_name_plural = "Website Informations"
-        
-    name = models.CharField(max_length=100)
-    tel1 = models.CharField(max_length=20)
-    tel2 = models.CharField(max_length=20)
-    email = models.CharField(max_length=100)
-    address = models.CharField(max_length=100)
-    description = models.TextField()
-    logo = models.FileField(
-        null=True, blank=True, verbose_name="logo image", upload_to="media/"
-    )
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
-    def __str__(self):
-        return self.name
-
-
-class WebInfoImage(models.Model):
-    webinfo = models.ForeignKey(
-        WebInfo, on_delete=models.CASCADE, related_name="webinfo"
-    )
-    image = models.ImageField(upload_to="media/")
-
-    def __str__(self):
-        return f"Image for {self.webinfo.name}"
 
 class NoticeModel(models.Model):
     subject = models.CharField(max_length=100)

@@ -19,6 +19,8 @@ from django.http import JsonResponse
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.filters import OrderingFilter
 from django.http import Http404
+from django.db import transaction
+import os
 
 from .form import ReviewForm
 from .models import (
@@ -1317,7 +1319,7 @@ class WebInfoList(generics.ListAPIView):
     queryset = WebInfo.objects.all()
     serializer_class = WebInfoSerializer
     
-class WebInfoCreateOrUpdate(APIView):
+class WebInfoCreateOrUpdate2(APIView):
     def patch(self, request, *args, **kwargs):
         try:
             webinfo = WebInfo.objects.first()
@@ -1344,4 +1346,37 @@ class WebInfoCreateOrUpdate(APIView):
         except Exception as e:
             return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
  
+ 
+class WebInfoCreateOrUpdate(APIView):
+    def patch(self, request, *args, **kwargs):
+        try:
+            with transaction.atomic():
+                webinfo = WebInfo.objects.first()
+                
+                if webinfo:
+                    serializer = WebInfoSerializer(webinfo, data=request.data, partial=True)
+                else:
+                    serializer = WebInfoSerializer(data=request.data)
+                
+                if serializer.is_valid():
+                    instance = serializer.save()
+
+                    # Handle images if provided
+                    images = request.FILES.getlist('images')
+
+                    if images:
+                        # Optionally delete old images
+                        WebInfoImage.objects.filter(webinfo=instance).delete()
+
+                        # Add new images with names based on file names
+                        for image in images:
+                            name, _ = os.path.splitext(image.name)
+                            WebInfoImage.objects.create(webinfo=instance, image=image, name=name)
+
+                    return Response(serializer.data, status=status.HTTP_200_OK)
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        except Exception as e:
+            return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
  
