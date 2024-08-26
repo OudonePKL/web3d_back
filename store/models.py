@@ -98,6 +98,8 @@ class GoodsModel(models.Model):
     name = models.CharField(max_length=100, verbose_name="product name")
     price = models.PositiveIntegerField(default=0, verbose_name="price")
     description = models.TextField(blank=True)
+    start_coords = models.CharField(max_length=100, null=True, blank=True)
+    end_coords = models.CharField(max_length=100, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
